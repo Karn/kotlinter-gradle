@@ -33,8 +33,8 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
 
         val fixes = mutableListOf<String>()
         try {
+            val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
             files.forEach { file ->
-                val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
                 val sourceText = file.readText()
                 val relativePath = file.toRelativeString(projectDirectory)
 

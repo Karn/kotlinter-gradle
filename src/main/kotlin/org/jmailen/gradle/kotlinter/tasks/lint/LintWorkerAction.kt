@@ -19,6 +19,7 @@ import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
 import org.jmailen.gradle.kotlinter.support.resolveRuleProviders
 import org.jmailen.gradle.kotlinter.tasks.LintTask
 import java.io.File
+import java.util.zip.ZipFile
 
 abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
     private val logger: Logger = DefaultContextAwareTaskLogger(Logging.getLogger(LintTask::class.java))
@@ -39,8 +40,11 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
 
         try {
             reporters.onEach { it.beforeAll() }
+            val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
+
             files.forEach { file ->
-                val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
+                println(ruleSets.joinToString("\n") { it.createNewRuleInstance().id })
+
                 val relativePath = file.toRelativeString(projectDirectory)
                 reporters.onEach { it.before(relativePath) }
                 logger.debug("$name linting: $relativePath")

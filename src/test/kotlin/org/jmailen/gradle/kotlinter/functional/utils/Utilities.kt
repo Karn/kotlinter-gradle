@@ -7,3 +7,12 @@ internal fun File.resolve(path: String, receiver: File.() -> Unit): File =
         parentFile.mkdirs()
         receiver()
     }
+
+
+internal fun File.printRecursively() {
+    println(absolutePath)
+
+    this.listFiles()?.forEach {
+        it.printRecursively()
+    }
+}

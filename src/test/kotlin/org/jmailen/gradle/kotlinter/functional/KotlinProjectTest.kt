@@ -187,7 +187,11 @@ internal class KotlinProjectTest : WithGradleTest.Kotlin() {
     }
 
     private fun settingsFile() = settingsFile.apply {
-        writeText("rootProject.name = 'kotlinter'")
+        writeText(
+            """
+            rootProject.name = 'kotlinter'
+            """.trimIndent(),
+        )
     }
 
     private fun editorConfig() = editorconfigFile.apply {
@@ -205,6 +209,10 @@ internal class KotlinProjectTest : WithGradleTest.Kotlin() {
 
             repositories {
                 mavenCentral()
+            }
+            
+            dependencies {
+                ktlintRuleset("com.twitter.compose.rules:ktlint:0.0.11")
             }
             """.trimIndent()
         writeText(buildscript)

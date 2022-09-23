@@ -10,6 +10,7 @@ internal fun resolveRuleProviders(
     includeExperimentalRules: Boolean = false,
 ): Set<RuleProvider> = providers
     .asSequence()
+    .onEach { print("RuleSetProvided: " + it.id) }
     .filter { includeExperimentalRules || it !is ExperimentalRuleSetProvider }
     .sortedWith(
         compareBy {
@@ -27,3 +28,4 @@ internal fun resolveRuleProviders(
 // https://github.com/jeremymailen/kotlinter-gradle/issues/101
 val defaultRuleSetProviders: List<RuleSetProviderV2> =
     ServiceLoader.load(RuleSetProviderV2::class.java).toList()
+        .also { println("Resolved rule providers: ${it.map { it.id }}") }

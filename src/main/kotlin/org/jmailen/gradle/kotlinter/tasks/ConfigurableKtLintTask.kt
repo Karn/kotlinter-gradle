@@ -1,16 +1,22 @@
 package org.jmailen.gradle.kotlinter.tasks
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.SourceTask
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.work.FileChange
@@ -25,6 +31,8 @@ abstract class ConfigurableKtLintTask(
     projectLayout: ProjectLayout,
     objectFactory: ObjectFactory,
 ) : SourceTask() {
+    @get:Classpath
+    internal abstract val ruleSetsClassPath: ConfigurableFileCollection
 
     @Input
     val experimentalRules: Property<Boolean> = objectFactory.property(default = DEFAULT_EXPERIMENTAL_RULES)
@@ -38,6 +46,12 @@ abstract class ConfigurableKtLintTask(
     internal val editorconfigFiles: FileCollection = objectFactory.fileCollection().apply {
         from(projectLayout.findApplicableEditorConfigFiles().toList())
     }
+
+//    @get:IgnoreEmptyDirectories
+//    @get:SkipWhenEmpty
+//    @get:PathSensitive(PathSensitivity.RELATIVE)
+//    @get:InputFiles
+//    val source: ConfigurableFileCollection = objectFactory.fileCollection()
 
     @Internal
     protected fun getKtLintParams(): KtLintParams = KtLintParams(

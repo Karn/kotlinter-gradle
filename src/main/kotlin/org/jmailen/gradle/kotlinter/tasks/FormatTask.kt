@@ -1,9 +1,12 @@
 package org.jmailen.gradle.kotlinter.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -12,17 +15,18 @@ import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.tasks.format.FormatWorkerAction
+import java.util.zip.ZipFile
 import javax.inject.Inject
 
-open class FormatTask @Inject constructor(
+@CacheableTask
+abstract class FormatTask @Inject constructor(
     private val workerExecutor: WorkerExecutor,
-    objectFactory: ObjectFactory,
+    private val objectFactory: ObjectFactory,
     private val projectLayout: ProjectLayout,
 ) : ConfigurableKtLintTask(
     projectLayout = projectLayout,
     objectFactory = objectFactory,
 ) {
-
     @OutputFile
     @Optional
     val report: RegularFileProperty = objectFactory.fileProperty()
@@ -33,7 +37,26 @@ open class FormatTask @Inject constructor(
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
-        val result = with(workerExecutor.noIsolation()) {
+        ruleSetsClassPath.files
+            .onEach { println("Files: $it") }
+            .filter { it.name in setOf("ktlint-ruleset.jar", "ktlint-0.0.11.jar") }
+            .forEach { ruleset ->
+                println("Using ruleset: ${ruleset.absolutePath} ${ruleset.exists()}")
+
+                ruleset.takeIf { it.exists() } ?: return@forEach
+
+                ZipFile(ruleset).use { zip ->
+                    zip.entries().asSequence().forEach { entry ->
+                        println("Found file: ${entry.name}")
+                    }
+                }
+            }
+
+        val result = with(
+            workerExecutor.processIsolation { spec ->
+                spec.classpath.setFrom(ruleSetsClassPath.files)
+            },
+        ) {
             submit(FormatWorkerAction::class.java) { p ->
                 p.name.set(name)
                 p.files.from(source)

@@ -1,14 +1,15 @@
 package org.jmailen.gradle.kotlinter.support
 
 import com.pinterest.ktlint.core.KtLintRuleEngine
+import com.pinterest.ktlint.core.RuleSetProviderV2
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.logging.Logger
 import java.io.File
 
 // You must create a new KtLintRuleEngine per file with fresh rule providers.
 // Otherwise, KtLint errors on resolving rule enable/disable statements in .editorconfig
-internal fun createKtlintEngine() = KtLintRuleEngine(
-    ruleProviders = resolveRuleProviders(defaultRuleSetProviders),
+internal fun createKtlintEngine(vararg providers: RuleSetProviderV2) = KtLintRuleEngine(
+    ruleProviders = resolveRuleProviders(defaultRuleSetProviders + providers),
 )
 
 internal fun resetEditorconfigCacheIfNeeded(

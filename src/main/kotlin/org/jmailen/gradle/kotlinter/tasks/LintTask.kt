@@ -45,7 +45,12 @@ open class LintTask @Inject constructor(
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
-        val result = with(workerExecutor.noIsolation()) {
+        // Initialize a WorkQueue with process isolation with a classpath set from the provided RuleSets.
+        val workQueue = workerExecutor.processIsolation { spec ->
+            spec.classpath.setFrom(ruleSetsClassPath.files)
+        }
+
+        val result = with(workQueue) {
             submit(LintWorkerAction::class.java) { p ->
                 p.name.set(name)
                 p.files.from(source)

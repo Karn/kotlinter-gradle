@@ -38,9 +38,10 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
         var hasError = false
 
         try {
+            val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
+
             reporters.onEach { it.beforeAll() }
             files.forEach { file ->
-                val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
                 val relativePath = file.toRelativeString(projectDirectory)
                 reporters.onEach { it.before(relativePath) }
                 logger.debug("$name linting: $relativePath")

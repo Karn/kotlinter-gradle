@@ -12,6 +12,7 @@ import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.KtLintParams
 import org.jmailen.gradle.kotlinter.support.defaultRuleSetProviders
 import org.jmailen.gradle.kotlinter.support.editorConfigOverride
+import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
 import org.jmailen.gradle.kotlinter.support.resolveRuleProviders
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
@@ -24,6 +25,7 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
     private val name: String = parameters.name.get()
     private val ktLintParams: KtLintParams = parameters.ktLintParams.get()
     private val output: File? = parameters.output.asFile.orNull
+    private val customRuleSetProviders = ktlintRulesetsFromClasspath(parameters.customRuleSetProviders)
 
     override fun execute() {
         resetEditorconfigCacheIfNeeded(
@@ -33,7 +35,7 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
 
         val fixes = mutableListOf<String>()
         try {
-            val ruleSets = resolveRuleProviders(defaultRuleSetProviders, ktLintParams.experimentalRules)
+            val ruleSets = resolveRuleProviders(defaultRuleSetProviders + customRuleSetProviders, ktLintParams.experimentalRules)
 
             files.forEach { file ->
                 val sourceText = file.readText()

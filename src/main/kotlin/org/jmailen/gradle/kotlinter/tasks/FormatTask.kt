@@ -33,12 +33,7 @@ open class FormatTask @Inject constructor(
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
-        // Initialize a WorkQueue with process isolation with a classpath set from the provided RuleSets.
-        val workQueue = workerExecutor.processIsolation { spec ->
-            spec.classpath.setFrom(ruleSetsClassPath.files)
-        }
-
-        val result = with(workQueue) {
+        val result = with(workerExecutor.noIsolation()) {
             submit(FormatWorkerAction::class.java) { p ->
                 p.name.set(name)
                 p.files.from(source)
@@ -46,6 +41,7 @@ open class FormatTask @Inject constructor(
                 p.ktLintParams.set(getKtLintParams())
                 p.output.set(report)
                 p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))
+                p.customRuleSetProviders.setFrom(ruleSetsClassPath)
             }
             runCatching { await() }
         }

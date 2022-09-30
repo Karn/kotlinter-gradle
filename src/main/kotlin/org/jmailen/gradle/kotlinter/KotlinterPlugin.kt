@@ -1,16 +1,14 @@
 package org.jmailen.gradle.kotlinter
 
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TaskProvider
-import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.isIncludeCompileClasspath
 import org.jmailen.gradle.kotlinter.pluginapplier.AndroidSourceSetApplier
 import org.jmailen.gradle.kotlinter.pluginapplier.KotlinJvmSourceSetApplier
 import org.jmailen.gradle.kotlinter.pluginapplier.KotlinMultiplatformSourceSetApplier
+import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.support.reporterFileExtension
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.InstallPreCommitHookTask

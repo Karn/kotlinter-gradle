@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_IGNORE_FAILURES
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
+import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.tasks.lint.LintWorkerAction
 import java.io.File
 import javax.inject.Inject
@@ -45,12 +46,7 @@ open class LintTask @Inject constructor(
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
-        // Initialize a WorkQueue with process isolation with a classpath set from the provided RuleSets.
-        val workQueue = workerExecutor.processIsolation { spec ->
-            spec.classpath.setFrom(ruleSetsClassPath.files)
-        }
-
-        val result = with(workQueue) {
+        val result = with(workerExecutor.noIsolation()) {
             submit(LintWorkerAction::class.java) { p ->
                 p.name.set(name)
                 p.files.from(source)
@@ -58,6 +54,7 @@ open class LintTask @Inject constructor(
                 p.reporters.putAll(reports)
                 p.ktLintParams.set(getKtLintParams())
                 p.changedEditorconfigFiles.from(getChangedEditorconfigFiles(inputChanges))
+                p.customRuleSetProviders.setFrom(ruleSetsClassPath)
             }
             runCatching { await() }
         }

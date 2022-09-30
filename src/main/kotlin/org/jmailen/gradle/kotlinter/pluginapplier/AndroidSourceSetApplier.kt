@@ -6,7 +6,6 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidSourceSet
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
-import org.jetbrains.kotlin.cfg.pseudocode.and
 import org.jmailen.gradle.kotlinter.SourceSetAction
 import org.jmailen.gradle.kotlinter.SourceSetApplier
 import org.jmailen.gradle.kotlinter.id

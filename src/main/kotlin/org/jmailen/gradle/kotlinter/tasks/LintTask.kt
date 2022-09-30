@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_IGNORE_FAILURES
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
-import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.tasks.lint.LintWorkerAction
 import java.io.File
 import javax.inject.Inject

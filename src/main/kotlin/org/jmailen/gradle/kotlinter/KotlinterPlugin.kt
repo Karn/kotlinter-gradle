@@ -8,7 +8,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.jmailen.gradle.kotlinter.pluginapplier.AndroidSourceSetApplier
 import org.jmailen.gradle.kotlinter.pluginapplier.KotlinJvmSourceSetApplier
 import org.jmailen.gradle.kotlinter.pluginapplier.KotlinMultiplatformSourceSetApplier
-import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.support.reporterFileExtension
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.InstallPreCommitHookTask

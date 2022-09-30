@@ -4,7 +4,6 @@ import com.pinterest.ktlint.core.RuleProvider
 import com.pinterest.ktlint.core.RuleSetProviderV2
 import com.pinterest.ktlint.ruleset.experimental.ExperimentalRuleSetProvider
 import org.gradle.api.file.ConfigurableFileCollection
-import java.io.File
 import java.net.URLClassLoader
 import java.util.ServiceLoader
 

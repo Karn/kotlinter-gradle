@@ -11,6 +11,7 @@ internal fun resolveRuleProviders(
     providers: Iterable<RuleSetProviderV2>,
     includeExperimentalRules: Boolean = false,
 ): Set<RuleProvider> = providers
+    .also { println("Resolved Providers: ${it.map { it.id }.toSet()}") }
     .asSequence()
     .filter { includeExperimentalRules || it !is ExperimentalRuleSetProvider }
     .sortedWith(
@@ -29,7 +30,6 @@ internal fun resolveRuleProviders(
 // https://github.com/jeremymailen/kotlinter-gradle/issues/101
 val defaultRuleSetProviders: List<RuleSetProviderV2> =
     ServiceLoader.load(RuleSetProviderV2::class.java).toList()
-        .also { println(it) }
 
 fun ktlintRulesetsFromClasspath(classpath: ConfigurableFileCollection): List<RuleSetProviderV2> {
     // Load the files from the classpath into a new ClassLoader

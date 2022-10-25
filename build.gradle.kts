@@ -20,7 +20,7 @@ val githubUrl = "https://github.com/jeremymailen/kotlinter-gradle"
 val webUrl = "https://github.com/jeremymailen/kotlinter-gradle"
 val projectDescription = "Lint and formatting for Kotlin using ktlint with configuration-free setup on JVM and Android projects"
 
-version = "3.12.0"
+version = "3.12.0-local"
 group = "org.jmailen.gradle"
 description = projectDescription
 
@@ -149,32 +149,42 @@ artifacts {
 }
 
 publishing {
-    publications.withType<MavenPublication> {
-        artifact(sourcesJar.get())
+    publications {
+        create<MavenPublication>("local") {
+            artifact(sourcesJar.get())
 
-        pom {
-            name.set(project.name)
-            description.set(project.description)
-            url.set(webUrl)
+            pom {
+                name.set(project.name)
+                description.set(project.description)
+                url.set(webUrl)
 
-            scm {
-                url.set(githubUrl)
-            }
+                scm {
+                    url.set(githubUrl)
+                }
 
-            licenses {
-                license {
-                    name.set("The Apache Software License, Version 2.0")
-                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                    distribution.set("repo")
+                licenses {
+                    license {
+                        name.set("The Apache Software License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                        distribution.set("repo")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("jeremymailen")
+                        name.set("Jeremy Mailen")
+                    }
                 }
             }
 
-            developers {
-                developer {
-                    id.set("jeremymailen")
-                    name.set("Jeremy Mailen")
-                }
-            }
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            name = "local"
+            url = uri("file://$rootDir/libs")
         }
     }
 }

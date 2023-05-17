@@ -9,6 +9,7 @@ import org.gradle.workers.WorkAction
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
 import org.jmailen.gradle.kotlinter.support.createKtlintEngine
+import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.support.reporterFor
 import org.jmailen.gradle.kotlinter.support.reporterPathFor
 import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
@@ -23,6 +24,7 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
     private val files: List<File> = parameters.files.toList()
     private val projectDirectory: File = parameters.projectDirectory.asFile.get()
     private val name: String = parameters.name.get()
+    private val customRuleSetProviders = ktlintRulesetsFromClasspath(parameters.customRuleSetProviders)
 
     override fun execute() {
         resetEditorconfigCacheIfNeeded(
@@ -34,7 +36,7 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
         try {
             reporters.onEach { it.beforeAll() }
             files.forEach { file ->
-                val ktLintEngine = createKtlintEngine()
+                val ktLintEngine = createKtlintEngine(*customRuleSetProviders.toTypedArray())
 
                 val relativePath = file.toRelativeString(projectDirectory)
                 reporters.onEach { it.before(relativePath) }

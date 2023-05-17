@@ -3,6 +3,7 @@ package org.jmailen.gradle.kotlinter
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.TaskProvider
 import org.jmailen.gradle.kotlinter.pluginapplier.AndroidSourceSetApplier
 import org.jmailen.gradle.kotlinter.pluginapplier.KotlinSourceSetApplier
@@ -29,6 +30,8 @@ class KotlinterPlugin : Plugin<Project> {
             registerPrePushHookTask()
         }
 
+        val ruleSetConfiguration = createRuleSetConfiguration()
+
         // for known kotlin plugins, register tasks by convention.
         extendablePlugins.forEach { (pluginId, sourceResolver) ->
             pluginManager.withPlugin(pluginId) {
@@ -49,6 +52,7 @@ class KotlinterPlugin : Plugin<Project> {
                                 }
                             },
                         )
+                        lintTask.ruleSetsClassPath.setFrom(ruleSetConfiguration)
                     }
                     lintKotlin.configure { lintTask ->
                         lintTask.dependsOn(lintTaskPerSourceSet)
@@ -60,12 +64,21 @@ class KotlinterPlugin : Plugin<Project> {
                     ) { formatTask ->
                         formatTask.source(resolvedSources)
                         formatTask.report.set(reportFile("$id-format.txt"))
+                        formatTask.ruleSetsClassPath.setFrom(ruleSetConfiguration)
                     }
                     formatKotlin.configure { formatTask ->
                         formatTask.dependsOn(formatKotlinPerSourceSet)
                     }
                 }
             }
+        }
+    }
+
+    private fun Project.createRuleSetConfiguration(): Configuration {
+        return configurations.create("ktlintRuleset").apply {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
         }
     }
 

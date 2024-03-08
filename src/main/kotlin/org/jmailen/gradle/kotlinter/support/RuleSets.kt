@@ -9,7 +9,6 @@ import java.util.ServiceLoader
 internal fun resolveRuleProviders(
     providers: Iterable<RuleSetProviderV2>,
 ): Set<RuleProvider> = providers
-    .also { println("Resolved Providers: ${it.map { it.id }.toSet()}") }
     .asSequence()
     .sortedWith(
         compareBy {

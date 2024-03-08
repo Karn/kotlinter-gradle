@@ -11,7 +11,6 @@ internal fun resolveRuleProviders(
     providers: Iterable<RuleSetProviderV2>,
     includeExperimentalRules: Boolean = false,
 ): Set<RuleProvider> = providers
-    .also { println("Resolved Providers: ${it.map { it.id }.toSet()}") }
     .asSequence()
     .filter { includeExperimentalRules || it !is ExperimentalRuleSetProvider }
     .sortedWith(

@@ -8,7 +8,8 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger
 import org.gradle.workers.WorkAction
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
-import org.jmailen.gradle.kotlinter.support.ktlintEngine
+import org.jmailen.gradle.kotlinter.support.createKtlintEngine
+import org.jmailen.gradle.kotlinter.support.ktlintRulesetsFromClasspath
 import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import java.io.File
@@ -19,9 +20,11 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
     private val projectDirectory: File = parameters.projectDirectory.asFile.get()
     private val name: String = parameters.name.get()
     private val output: File? = parameters.output.asFile.orNull
+    private val customRuleSetProviders = ktlintRulesetsFromClasspath(parameters.customRuleSetProviders)
 
     override fun execute() {
-        resetEditorconfigCacheIfNeeded(
+        val ktlintEngine = createKtlintEngine(customRuleSetProviders)
+        ktlintEngine.resetEditorconfigCacheIfNeeded(
             changedEditorconfigFiles = parameters.changedEditorConfigFiles,
             logger = logger,
         )

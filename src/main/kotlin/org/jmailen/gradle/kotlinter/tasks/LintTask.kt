@@ -46,6 +46,7 @@ open class LintTask @Inject constructor(
                 p.projectDirectory.set(projectLayout.projectDirectory.asFile)
                 p.reporters.putAll(reports)
                 p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))
+                p.customRuleSetProviders.from(ruleSetsClassPath)
             }
             runCatching { await() }
         }

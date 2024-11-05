@@ -49,6 +49,7 @@ open class FormatTask @Inject constructor(
                 p.projectDirectory.set(projectLayout.projectDirectory.asFile)
                 p.output.set(report)
                 p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))
+                p.customRuleSetProviders.from(ruleSetsClassPath)
             }
             runCatching { await() }
         }

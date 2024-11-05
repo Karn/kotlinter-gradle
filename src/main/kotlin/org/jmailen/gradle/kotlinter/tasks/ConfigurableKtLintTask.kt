@@ -1,11 +1,13 @@
 package org.jmailen.gradle.kotlinter.tasks
 
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -19,6 +21,10 @@ import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_IGNORE_
 import org.jmailen.gradle.kotlinter.support.findApplicableEditorConfigFiles
 
 abstract class ConfigurableKtLintTask(projectLayout: ProjectLayout, objectFactory: ObjectFactory) : SourceTask() {
+    @get:Classpath
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Incremental
+    val ruleSetsClassPath: ConfigurableFileCollection = objectFactory.fileCollection()
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)

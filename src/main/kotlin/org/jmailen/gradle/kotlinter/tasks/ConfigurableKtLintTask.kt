@@ -18,6 +18,7 @@ import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.gradle.workers.WorkerExecutionException
 import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_IGNORE_LINT_FAILURES
+import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_PARALLEL_PROCESSING
 import org.jmailen.gradle.kotlinter.support.findApplicableEditorConfigFiles
 
 abstract class ConfigurableKtLintTask(projectLayout: ProjectLayout, objectFactory: ObjectFactory) : SourceTask() {
@@ -31,6 +32,9 @@ abstract class ConfigurableKtLintTask(projectLayout: ProjectLayout, objectFactor
 
     @Input
     open val ignoreLintFailures: Property<Boolean> = objectFactory.property(default = DEFAULT_IGNORE_LINT_FAILURES)
+
+    @Input
+    open val parallelProcessing: Property<Boolean> = objectFactory.property(default = DEFAULT_PARALLEL_PROCESSING)
 
     @Classpath
     val ktlintClasspath: ConfigurableFileCollection = objectFactory.fileCollection()

@@ -10,7 +10,7 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger
 import org.gradle.workers.WorkAction
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
-import org.jmailen.gradle.kotlinter.support.ktlintEngine
+import org.jmailen.gradle.kotlinter.support.processFilesWithAdaptiveEngine
 import org.jmailen.gradle.kotlinter.support.reporterFor
 import org.jmailen.gradle.kotlinter.support.reporterPathFor
 import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
@@ -31,32 +31,46 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
             changedEditorconfigFiles = parameters.changedEditorConfigFiles,
             logger = logger,
         )
+        // Filter out non-Kotlin files early for better performance
+        val kotlinFiles = files.filter { it.extension in supportedExtensions }
+
+        val isParallel = parameters.parallelProcessing.get()
         var hasError = false
 
         try {
             reporters.onEach { it.beforeAll() }
-            files.forEach { file ->
 
+            // Use adaptive engine processing for better resource management
+            processFilesWithAdaptiveEngine(
+                files = kotlinFiles,
+                parallelEnabled = isParallel,
+            ) { engine, file ->
                 val relativePath = file.toRelativeString(projectDirectory)
                 reporters.onEach { it.before(relativePath) }
                 logger.debug("$name linting: $relativePath")
 
-                if (file.extension !in supportedExtensions) {
-                    logger.debug("$name ignoring non Kotlin file: $relativePath")
-                    return@forEach
-                }
+                engine.lint(Code.fromFile(file)) { error: LintError ->
+                    // Thread-safe error tracking through synchronized access
+                    synchronized(this) {
+                        hasError = true
+                    }
 
-                ktlintEngine.lint(Code.fromFile(file)) { error: LintError ->
-                    hasError = true
-                    reporters.onEach { reporter ->
-                        // some reporters want relative paths, some want absolute
-                        val filePath = reporterPathFor(reporter, file, projectDirectory)
-                        reporter.onLintError(filePath, error.toCliError())
+                    // Thread-safe reporter access
+                    synchronized(reporters) {
+                        reporters.onEach { reporter ->
+                            // some reporters want relative paths, some want absolute
+                            val filePath = reporterPathFor(reporter, file, projectDirectory)
+                            reporter.onLintError(filePath, error.toCliError())
+                        }
                     }
                     logger.error("${file.path}:${error.line}:${error.col}: Lint error > [${error.ruleId.value}] ${error.detail}")
                 }
-                reporters.onEach { it.after(relativePath) }
+
+                synchronized(reporters) {
+                    reporters.onEach { it.after(relativePath) }
+                }
             }
+
             reporters.onEach { it.afterAll() }
         } catch (t: Throwable) {
             throw KotlinterError("lint worker execution error", t)

@@ -8,7 +8,7 @@ import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger
 import org.gradle.workers.WorkAction
 import org.jmailen.gradle.kotlinter.support.KotlinterError
 import org.jmailen.gradle.kotlinter.support.LintFailure
-import org.jmailen.gradle.kotlinter.support.ktlintEngine
+import org.jmailen.gradle.kotlinter.support.processFilesWithAdaptiveEngine
 import org.jmailen.gradle.kotlinter.support.resetEditorconfigCacheIfNeeded
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import java.io.File
@@ -25,23 +25,25 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
             changedEditorconfigFiles = parameters.changedEditorConfigFiles,
             logger = logger,
         )
+        // Filter out non-Kotlin files early for better performance
+        val kotlinFiles = files.filter { it.extension in supportedExtensions }
+
+        val isParallel = parameters.parallelProcessing.get()
         val fixes = mutableListOf<String>()
-
         var hasError = false
-        try {
-            files.forEach { file ->
 
+        try {
+            // Use adaptive engine processing for better resource management
+            processFilesWithAdaptiveEngine(
+                files = kotlinFiles,
+                parallelEnabled = isParallel,
+            ) { engine, file ->
                 val sourceText = file.readText()
                 val relativePath = file.toRelativeString(projectDirectory)
 
                 logger.log(LogLevel.DEBUG, "$name checking format: $relativePath")
 
-                if (file.extension !in supportedExtensions) {
-                    logger.log(LogLevel.DEBUG, "$name ignoring non Kotlin file: $relativePath")
-                    return@forEach
-                }
-
-                val formattedText = ktlintEngine.format(Code.fromFile(file)) { error, corrected ->
+                val formattedText = engine.format(Code.fromFile(file)) { error, corrected ->
                     val msg = when (corrected) {
                         true -> "${file.path}:${error.line}:${error.col}: Format fixed > [${error.ruleId.value}] ${error.detail}"
                         false -> "${file.path}:${error.line}:${error.col}: Format could not fix > [${error.ruleId.value}] ${error.detail}"
@@ -49,11 +51,19 @@ abstract class FormatWorkerAction : WorkAction<FormatWorkerParameters> {
                     if (corrected) {
                         logger.warn(msg)
                     } else {
-                        hasError = true
+                        // Thread-safe error tracking
+                        synchronized(this) {
+                            hasError = true
+                        }
                         logger.error(msg)
                     }
-                    fixes.add(msg)
+
+                    // Thread-safe fixes collection
+                    synchronized(fixes) {
+                        fixes.add(msg)
+                    }
                 }
+
                 if (!formattedText.contentEquals(sourceText)) {
                     logger.warn("${file.path}: Format fixed")
                     file.writeText(formattedText)

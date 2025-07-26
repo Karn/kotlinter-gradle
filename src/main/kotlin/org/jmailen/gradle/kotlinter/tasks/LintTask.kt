@@ -45,6 +45,7 @@ open class LintTask @Inject constructor(
             p.files.from(source)
             p.projectDirectory.set(projectLayout.projectDirectory.asFile)
             p.reporters.putAll(reports)
+            p.parallelProcessing.set(parallelProcessing)
             p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))
         }
         try {

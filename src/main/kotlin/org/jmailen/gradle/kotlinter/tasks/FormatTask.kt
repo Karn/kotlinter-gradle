@@ -48,6 +48,7 @@ open class FormatTask @Inject constructor(
             p.files.from(source)
             p.projectDirectory.set(projectLayout.projectDirectory.asFile)
             p.output.set(report)
+            p.parallelProcessing.set(parallelProcessing)
             p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))
         }
         try {

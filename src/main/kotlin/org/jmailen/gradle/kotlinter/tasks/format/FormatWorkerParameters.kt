@@ -11,4 +11,5 @@ interface FormatWorkerParameters : WorkParameters {
     val files: ConfigurableFileCollection
     val projectDirectory: RegularFileProperty
     val output: RegularFileProperty
+    val parallelProcessing: Property<Boolean>
 }

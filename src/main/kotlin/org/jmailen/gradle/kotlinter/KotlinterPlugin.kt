@@ -28,7 +28,7 @@ class KotlinterPlugin : Plugin<Project> {
     )
 
     override fun apply(project: Project) = with(project) {
-        val kotlinterExtension = extensions.create("kotlinter", KotlinterExtension::class.java)
+        val kotlinterExtension = extensions.create("kotlinter", KotlinterExtension::class.java, project)
         val ktlintConfiguration = createKtLintConfiguration(kotlinterExtension)
 
         if (this == rootProject) {
@@ -102,6 +102,7 @@ class KotlinterPlugin : Plugin<Project> {
             ) { lintTask ->
                 lintTask.source(resolvedSources)
                 lintTask.ignoreLintFailures.set(provider { kotlinterExtension.ignoreLintFailures })
+                lintTask.parallelProcessing.set(provider { kotlinterExtension.parallelProcessing })
                 lintTask.reports.set(
                     provider {
                         kotlinterExtension.reporters.associateWith { reporter ->
@@ -121,6 +122,7 @@ class KotlinterPlugin : Plugin<Project> {
                 formatTask.source(resolvedSources)
                 formatTask.ignoreFormatFailures.set(provider { kotlinterExtension.ignoreFormatFailures })
                 formatTask.ignoreLintFailures.set(provider { kotlinterExtension.ignoreLintFailures })
+                formatTask.parallelProcessing.set(provider { kotlinterExtension.parallelProcessing })
                 formatTask.report.set(reportFile("$id-format.txt"))
             }
             parentFormatTask.configure { formatTask ->

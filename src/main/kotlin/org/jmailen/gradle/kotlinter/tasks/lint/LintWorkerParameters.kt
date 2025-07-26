@@ -13,4 +13,5 @@ interface LintWorkerParameters : WorkParameters {
     val files: ConfigurableFileCollection
     val projectDirectory: RegularFileProperty
     val reporters: MapProperty<String, File>
+    val parallelProcessing: Property<Boolean>
 }

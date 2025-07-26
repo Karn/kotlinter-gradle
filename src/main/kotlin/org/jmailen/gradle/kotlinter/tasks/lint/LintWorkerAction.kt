@@ -33,6 +33,8 @@ abstract class LintWorkerAction : WorkAction<LintWorkerParameters> {
         )
         var hasError = false
 
+        logger.debug("Processing ${files.size} files")
+
         try {
             reporters.onEach { it.beforeAll() }
             files.forEach { file ->

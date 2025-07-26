@@ -39,6 +39,7 @@ class KotlinterPlugin : Plugin<Project> {
         // This ensures that custom tasks work even without a Kotlin plugin
         tasks.withType(ConfigurableKtLintTask::class.java).configureEach { task ->
             task.ktlintClasspath.from(ktlintConfiguration)
+            task.incrementalEnabled.set(providers.gradleProperty("kotlinter.format.incremental").map { it.toBoolean() }.orElse(false))
         }
 
         // for known kotlin plugins, register tasks by convention.

@@ -10,6 +10,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.gradle.workers.WorkerExecutionException
 import org.gradle.workers.WorkerExecutor
@@ -33,16 +34,19 @@ open class LintTask @Inject constructor(
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
+    @Incremental
     override fun getSource(): FileTree = super.getSource()
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
+        val changedFiles = getChangedFiles(inputChanges)
+
         val workQueue = workerExecutor.processIsolation { config ->
             config.classpath.setFrom(ktlintClasspath)
         }
         workQueue.submit(LintWorkerAction::class.java) { p ->
             p.name.set(name)
-            p.files.from(source)
+            p.files.from(changedFiles)
             p.projectDirectory.set(projectLayout.projectDirectory.asFile)
             p.reporters.putAll(reports)
             p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))

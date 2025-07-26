@@ -13,6 +13,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
+import org.gradle.work.ChangeType
 import org.gradle.work.FileChange
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
@@ -20,7 +21,7 @@ import org.gradle.workers.WorkerExecutionException
 import org.jmailen.gradle.kotlinter.KotlinterExtension.Companion.DEFAULT_IGNORE_LINT_FAILURES
 import org.jmailen.gradle.kotlinter.support.findApplicableEditorConfigFiles
 
-abstract class ConfigurableKtLintTask(projectLayout: ProjectLayout, objectFactory: ObjectFactory) : SourceTask() {
+abstract class ConfigurableKtLintTask(private val projectLayout: ProjectLayout, objectFactory: ObjectFactory) : SourceTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -32,11 +33,30 @@ abstract class ConfigurableKtLintTask(projectLayout: ProjectLayout, objectFactor
     @Input
     open val ignoreLintFailures: Property<Boolean> = objectFactory.property(default = DEFAULT_IGNORE_LINT_FAILURES)
 
+    @Input
+    val incrementalEnabled: Property<Boolean> = objectFactory.property(default = false)
+
     @Classpath
     val ktlintClasspath: ConfigurableFileCollection = objectFactory.fileCollection()
 
     protected fun getChangedEditorconfigFiles(inputChanges: InputChanges) =
         inputChanges.getFileChanges(editorconfigFiles).map(FileChange::getFile)
+
+    protected fun getChangedFiles(inputChanges: InputChanges): Set<java.io.File> {
+        if (incrementalEnabled.get() && inputChanges.isIncremental) {
+            try {
+                return inputChanges.getFileChanges(source)
+                    .filter { it.changeType != ChangeType.REMOVED }
+                    .map { it.file }
+                    .toSet()
+            } catch (e: Exception) {
+                // Nothing to do, fallback
+            }
+        }
+
+        // Fall back to processing all files if incremental tracking fails
+        return source.files
+    }
 }
 
 internal inline fun <reified T> ObjectFactory.property(default: T? = null): Property<T> = property(T::class.java).apply {

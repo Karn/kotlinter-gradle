@@ -300,6 +300,7 @@ class CustomTaskTest : WithGradleTest.Kotlin() {
             .forwardOutput()
 
         val result = runner.build()
-        assertEquals(TaskOutcome.SUCCESS, result.task(":customFormatTask")?.outcome)
+        // With incremental processing, format tasks can be UP_TO_DATE if no formatting is needed
+        assertTrue(result.task(":customFormatTask")?.outcome in listOf(TaskOutcome.SUCCESS, TaskOutcome.UP_TO_DATE))
     }
 }

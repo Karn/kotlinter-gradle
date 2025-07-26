@@ -121,6 +121,11 @@ class KotlinterPlugin : Plugin<Project> {
                 formatTask.source(resolvedSources)
                 formatTask.ignoreFormatFailures.set(provider { kotlinterExtension.ignoreFormatFailures })
                 formatTask.ignoreLintFailures.set(provider { kotlinterExtension.ignoreLintFailures })
+                formatTask.enableIncrementalFormat.set(
+                    providers.gradleProperty("kotlinter.format.incremental")
+                        .map { it.toBoolean() }
+                        .orElse(provider { kotlinterExtension.enableIncrementalFormat }),
+                )
                 formatTask.report.set(reportFile("$id-format.txt"))
             }
             parentFormatTask.configure { formatTask ->

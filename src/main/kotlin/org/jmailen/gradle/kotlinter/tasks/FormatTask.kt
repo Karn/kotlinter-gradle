@@ -1,13 +1,18 @@
 package org.jmailen.gradle.kotlinter.tasks
 
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.gradle.workers.WorkerExecutionException
 import org.gradle.workers.WorkerExecutor
@@ -34,18 +39,28 @@ open class FormatTask @Inject constructor(
         default = KotlinterExtension.DEFAULT_IGNORE_FORMAT_FAILURES,
     )
 
-    init {
-        outputs.upToDateWhen { false }
-    }
+    @Input
+    val enableIncrementalFormat: Property<Boolean> = objectFactory.property(
+        default = KotlinterExtension.DEFAULT_INCREMENTAL_FORMAT,
+    )
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Incremental
+    override fun getSource(): FileTree = super.getSource()
 
     @TaskAction
     fun run(inputChanges: InputChanges) {
+        // Incremental change processing is configurable via incrementalEnabled
+        // property.
+        val changedFiles = getChangedFiles(inputChanges, enableIncrementalFormat.get())
+
         val workQueue = workerExecutor.processIsolation { config ->
             config.classpath.setFrom(ktlintClasspath)
         }
         workQueue.submit(FormatWorkerAction::class.java) { p ->
             p.name.set(name)
-            p.files.from(source)
+            p.files.from(changedFiles)
             p.projectDirectory.set(projectLayout.projectDirectory.asFile)
             p.output.set(report)
             p.changedEditorConfigFiles.from(getChangedEditorconfigFiles(inputChanges))

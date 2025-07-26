@@ -169,7 +169,8 @@ internal class KotlinProjectTest : WithGradleTest.Kotlin() {
             assertEquals(SUCCESS, task(":formatKotlin")?.outcome)
         }
         build("formatKotlin").apply {
-            assertEquals(SUCCESS, task(":formatKotlin")?.outcome)
+            // Second format run is up-to-date when no changes needed
+            assertEquals(UP_TO_DATE, task(":formatKotlin")?.outcome)
         }
 
         editorconfigFile.appendText("content=updated")
@@ -207,7 +208,8 @@ internal class KotlinProjectTest : WithGradleTest.Kotlin() {
             assertTrue(output.contains("Configuration cache entry stored"))
         }
         build("formatKotlin", "--configuration-cache").apply {
-            assertEquals(SUCCESS, task(":formatKotlin")?.outcome)
+            // Second format run with configuration cache should be up-to-date
+            assertEquals(UP_TO_DATE, task(":formatKotlin")?.outcome)
             assertTrue(output.contains("Configuration cache entry reused."))
         }
     }
